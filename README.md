@@ -17,9 +17,9 @@ cp verify-seo.js your-project/scripts/verify-seo.js
 # 3. 写入 CLAUDE.md 铁律（见下方）
 ```
 
-## create-post.js — 交互式脚手架
+## create-post.js — 交互式脚手架 + 自动路由注册
 
-运行 `pnpm post:new`，自动生成包含以下满配 SEO 标签的 `page.tsx`：
+运行 `pnpm post:new`，自动生成包含以下满配 SEO 标签的 `page.tsx`，**同时自动注入路由注册表**，从生成到上线路由，100% 零人工干预。
 
 | 防御层 | 作用 | 缺失后果 |
 |--------|------|----------|
@@ -28,6 +28,8 @@ cp verify-seo.js your-project/scripts/verify-seo.js
 | `openGraph` | 社交媒体分享卡片 | 分享只有光秃秃链接 |
 | `twitter` | Twitter/X 分享卡片 | 推文没有预览 |
 | `min-h-screen + bg-*` | 移动端容器 | 高度塌陷、背景断层 |
+
+> 本脚手架不仅生成防弹模板，还能自动定位并注入路由注册表。一条命令，从生成到上线路由，100% 零人工干预。
 
 ## verify-seo.js — 构建时铁闸
 

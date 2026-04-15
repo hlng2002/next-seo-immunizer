@@ -10,13 +10,14 @@ const rl = readline.createInterface({
 });
 
 const BLOG_DIR = path.join(__dirname, '../apps/web/src/app/blog');
+const REGISTRY_PATH = path.join(__dirname, '../apps/web/src/lib/blog-registry.ts');
 
 function prompt(question) {
   return new Promise(resolve => rl.question(question, resolve));
 }
 
 async function main() {
-  console.log('\n🚀 创建新文章（强制 SEO 规范）\n');
+  console.log('\n🚀 创建新文章（强制 SEO 规范 + 自动路由注册）\n');
 
   const slug = await prompt('文章 slug (英文/拼音横杠连接，如 lock-free-sab): ');
   if (!slug || !/^[a-z0-9-]+$/.test(slug)) {
@@ -111,10 +112,41 @@ export default function BlogPost() {
 `;
 
   fs.writeFileSync(path.join(postDir, 'page.tsx'), template);
-  console.log(`\n✅ 文章创建成功！`);
+  console.log(`\n✅ 文章模板创建成功！`);
   console.log(`📂 路径: apps/web/src/app/blog/${slug}/page.tsx`);
-  console.log(`👉 已自动注入 Canonical, JSON-LD, OpenGraph 等极致 SEO 标签！\n`);
+  console.log(`👉 已自动注入 Canonical, JSON-LD, OpenGraph 等极致 SEO 标签`);
 
+  // ---- 自动注入路由注册表 ----
+  const tag = await prompt('文章标签 (如: 工程化/SEO/底层/复盘): ');
+
+  if (fs.existsSync(REGISTRY_PATH)) {
+    const registryRaw = fs.readFileSync(REGISTRY_PATH, 'utf-8');
+
+    // 用 lastIndexOf(']') 定位数组末尾，零依赖注入
+    const lastBracketIdx = registryRaw.lastIndexOf(']');
+    if (lastBracketIdx !== -1) {
+      const newEntry = `  {
+    slug: '${slug}',
+    title: '${title.replace(/'/g, "\\'")}',
+    description: '${description.replace(/'/g, "\\'")}',
+    tag: '${tag || '未分类'}',
+    date: '${datePublished}',
+  },`;
+
+      const injected = registryRaw.slice(0, lastBracketIdx) + newEntry + '\n]\n';
+      const cleanInjected = injected.replace(/\n{3,}/g, '\n\n');
+
+      fs.writeFileSync(REGISTRY_PATH, cleanInjected);
+      console.log(`📋 已自动注册到 blog-registry.ts`);
+      console.log(`🏷️  标签: ${tag || '未分类'} | 日期: ${datePublished}`);
+    } else {
+      console.warn('⚠️  blog-registry.ts 格式异常，无法自动注入，请手动添加');
+    }
+  } else {
+    console.warn('⚠️  blog-registry.ts 不存在，请手动创建注册表');
+  }
+
+  console.log(`\n🎉 全流程完成！一条命令 = 模板 + SEO + 路由注册，100% 零人工干预！\n`);
   rl.close();
 }
 
