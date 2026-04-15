@@ -42,6 +42,7 @@ cp verify-seo.js your-project/scripts/verify-seo.js
 - 移动端容器（`min-h-screen`）
 - 亮暗模式背景色（`bg-zinc-50` / `dark:bg-zinc-950`）
 - 外层空 Fragment `<>` 检测（AI 最爱偷偷替换成 Fragment 导致布局崩塌）
+- **Registry 一致性校验** — 检测 `blog/` 目录下有 page.tsx 但未注册到路由表的漏网之鱼
 
 ## CLAUDE.md 铁律
 

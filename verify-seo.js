@@ -52,11 +52,34 @@ function checkPosts() {
     }
   }
 
+  // === Registry 一致性校验 ===
+  const registryPath = path.join(__dirname, '../apps/web/src/lib/blog-registry.ts');
+  if (fs.existsSync(registryPath)) {
+    const registryRaw = fs.readFileSync(registryPath, 'utf8');
+    const slugMatches = registryRaw.match(/slug:\s*'[^']+'/g) || [];
+    const registeredSlugs = slugMatches.map(m => m.match(/slug:\s*'([^']+)'/)[1]);
+    const dirSlugs = entries.filter(e => e.isDirectory() && fs.existsSync(path.join(BLOG_DIR, e.name, 'page.tsx'))).map(e => e.name);
+
+    const missing = dirSlugs.filter(s => !registeredSlugs.includes(s));
+    const orphaned = registeredSlugs.filter(s => !dirSlugs.includes(s));
+
+    if (missing.length > 0) {
+      console.error(`\n❌ [Registry] 以下文章未注册到 blog-registry.ts: ${missing.join(', ')}`);
+      hasError = true;
+    }
+    if (orphaned.length > 0) {
+      console.warn(`\n⚠️  [Registry] 以下注册条目无对应目录: ${orphaned.join(', ')}`);
+    }
+    if (missing.length === 0 && orphaned.length === 0) {
+      console.log('✅ [Registry] 目录与注册表完全一致');
+    }
+  }
+
   if (hasError) {
     console.error('\n🚫 校验失败！请修复后重试。建议使用 pnpm post:new 创建文章。');
     process.exit(1);
   } else {
-    console.log('\n🎉 所有文章均符合规范！（SEO + 布局 + 移动端）');
+    console.log('\n🎉 所有文章均符合规范！（SEO + 布局 + 移动端 + Registry）');
   }
 }
 
